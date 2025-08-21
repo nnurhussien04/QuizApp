@@ -7,7 +7,6 @@ object Constants{ //Here we are creating a singleton class to allow us to only h
     fun getQuestions():MutableList<Question>{
         //val question = mutableListOf<Question>()
         val questions = ArrayList<Question>() //An array list to hold the question objects
-
         val q1 = Question( //Question Object being created, this is what will be used to create the question and get the answer, images and options
             1,
             "What is the player's name?",
