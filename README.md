@@ -15,12 +15,12 @@ Test your knowledge of famous football players, coaches, and clubs! 🏆
   🖥 Language: Kotlin
 
 ### 🚀 Getting Started
-  1️. Clone the Repository
+1️. Clone the Repository
     - git clone https://github.com/your-username/quizapp.git
-  2️. Open in Android Studio
+2️. Open in Android Studio
     - Open the project in Android Studio
     - Sync Gradle
-  3️. Run the App
+3️. Run the App
     - Run on an emulator or physical device 🎉
 
 🔥 Ready to challenge your football knowledge? Give it a try! ⚽
