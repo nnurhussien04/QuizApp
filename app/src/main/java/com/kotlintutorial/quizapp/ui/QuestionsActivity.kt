@@ -1,5 +1,6 @@
 package com.kotlintutorial.quizapp.ui
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -16,7 +17,7 @@ import com.kotlintutorial.quizapp.R
 import com.kotlintutorial.quizapp.model.Question
 import com.kotlintutorial.quizapp.utils.Constants
 
-class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inherting the onClick Class to allow us to use its methods
+class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inheriting the onClick Class to allow us to use its methods
     private lateinit var progressBar:ProgressBar
     private lateinit var textViewProgress: TextView
     private lateinit var textViewQuestion:TextView
@@ -35,12 +36,14 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inherti
     private var selectedAnswer = 0
     private lateinit var currentQuestion:Question
     private var answered = false
+    private lateinit var name:String
+    private var score = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
          setContentView(R.layout.activity_questions)
 
-        progressBar = findViewById(R.id.progressBar)
+        progressBar = findViewById(R.id.progressBar) //Defining the components in the activity by using findViewById to link them
         textViewProgress = findViewById(R.id.text_view_progress)
         textViewQuestion = findViewById(R.id.question_text_view)
         footballImage = findViewById(R.id.image_football)
@@ -60,27 +63,44 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inherti
 
 
         questionList = Constants.getQuestions() //Singleton Object that allows us to get questions we have stored
+        questionList.shuffle()
         Log.d("QuestionsSize","${questionList.size}") //A debug tool to allow us to see if the questionList works or not
         showNextQuestion() //This is called to display the first question
+
+        if(intent.hasExtra(Constants.USER_NAME)){  //Checks if the intent has the username from another activity
+            name = intent.getStringExtra(Constants.USER_NAME)!! //Retrieves the username using the key
+
+        }
     }
 
     private fun showNextQuestion(){
-        resetOptions() //Resets the button to default backgrounds
-        val question = questionList[questionCounter] //Assigns the question object from the questionList in Constants
-        footballImage.setImageResource(question.image) //It uses the question object to get the image and uses it in image view
-        progressBar.progress = questionCounter //Assigns the progress bar to the questionCounter to let user know how many questions left
-        textViewProgress.text = "${questionCounter+1}/${progressBar.max}" //assigns the text view to questionCounter to let them know what question number they are on and also shows them how many questions they will be asked
-        textViewQuestion.text = question.question //Displays the question the user will be asked on textView
-        textViewOptionOne.text = question.optionOne //Display all the options on textView
-        textViewOptionTwo.text = question.optionTwo
-        textViewOptionThree.text = question.optionThree
-        textViewOptionFour.text = question.optionFour
-
         if(questionCounter < questionList.size){ //Checks if the counter is below the arrayList size as that is the number of questions left
             checkButton.text="CHECK" //Assigns the text to the button
             currentQuestion = questionList[questionCounter] //This assigns the question in another variable to be used outside this scope and to check if the user got the answer correct once answered
+
+            resetOptions() //Resets the button to default backgrounds
+            val question = questionList[questionCounter] //Assigns the question object from the questionList in Constants
+            footballImage.setImageResource(question.image) //It uses the question object to get the image and uses it in image view
+            progressBar.progress = questionCounter //Assigns the progress bar to the questionCounter to let user know how many questions left
+            textViewProgress.text = "${questionCounter+1}/${progressBar.max}" //assigns the text view to questionCounter to let them know what question number they are on and also shows them how many questions they will be asked
+            textViewQuestion.text = question.question //Displays the question the user will be asked on textView
+            textViewOptionOne.text = question.optionOne //Display all the options on textView
+            textViewOptionTwo.text = question.optionTwo
+            textViewOptionThree.text = question.optionThree
+            textViewOptionFour.text = question.optionFour
+            textViewOptionOne.isClickable = true
+            textViewOptionTwo.isClickable = true
+            textViewOptionThree.isClickable = true
+            textViewOptionFour.isClickable = true
         } else{
             checkButton.text="FINISH" //Assigns the text to the button
+            Intent(this,ResultActivity::class.java).also{
+                it.putExtra(Constants.USER_NAME,name) //Sends data from this activity using the key and the value
+                it.putExtra(Constants.SCORE,score)
+                it.putExtra(Constants.TOTAL_QUESTIONS,questionList.size)
+                startActivity(it)
+                finish()
+            }
         }
         questionCounter++ //Increments questionCounter to let app know to move to the next question
         answered = false //Resets answered as its a new question
@@ -92,7 +112,7 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inherti
 
     private fun resetOptions(){
         val options = mutableListOf<TextView>()
-        options.add(textViewOptionOne) //Add all the buttons in the list, make it easier to call the functions, rather than do it indvidually
+        options.add(textViewOptionOne) //Add all the buttons in the list, make it easier to call the functions, rather than do it individually
         options.add(textViewOptionTwo)
         options.add(textViewOptionThree)
         options.add(textViewOptionFour)
@@ -107,7 +127,7 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inherti
 
     private fun selectedOption(textView:TextView,selectedOptionNumber:Int){
         resetOptions() //Called to restart on all button once the user select a different button
-        selectedAnswer = selectedOptionNumber //This is used to check if the answer the user written was correct
+        selectedAnswer = selectedOptionNumber //This is used to check if the answer the user selected was correct
         textView.setTextColor(Color.WHITE) //Change text color
         textView.setTypeface(textView.typeface,Typeface.BOLD) //Change text font to bold to show its displayed
         textView.background = ContextCompat.getDrawable(this,R.drawable.selected_option_border_bg) //Changes background to show the button has been selected
@@ -119,21 +139,16 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inherti
             return //Exits the function and doesn't allow user to go to next question
         }
         answered = true //Assigns answered to true as user has now answered question
+
+        textViewOptionOne.isClickable = false
+        textViewOptionTwo.isClickable = false
+        textViewOptionThree.isClickable = false
+        textViewOptionFour.isClickable = false
+
+
         if(selectedAnswer == currentQuestion.correctAnswer){ //Checks if the user answer matches with the correct one assigned in the property
-            when(selectedAnswer){ //Once passed through the validation, it now checks which number was assigned
-                1 -> {
-                    textViewOptionOne.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg) //Once the number is found it changes background to let the user know they got it correct
-                }
-                2 -> {
-                    textViewOptionTwo.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
-                }
-                3 -> {
-                    textViewOptionThree.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
-                }
-                4 -> {
-                    textViewOptionFour.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
-                }
-            }
+            highlightAnswer(selectedAnswer)
+            score++
         }
         else{
             when(selectedAnswer){ // now it checks which number was assigned
@@ -157,20 +172,7 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inherti
 
     private fun showSolution(){
         selectedAnswer = currentQuestion.correctAnswer //Changes the user answer to the correct one to display it after they go it wrong
-        when (selectedAnswer) {
-            1 -> {
-                textViewOptionOne.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg) //Once the number is found it changes background to let the user know they got it correct
-            }
-            2 -> {
-                textViewOptionTwo.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
-            }
-            3 -> {
-                textViewOptionThree.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
-            }
-            4 -> {
-                textViewOptionFour.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
-            }
-        }
+        highlightAnswer(selectedAnswer)
     }
 
     override fun onClick(view: View?) { //Now using the inherited methods, this checks if components in the activity has been clicked
@@ -198,5 +200,21 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener  { //Inherti
         }
     }
 
+    private fun highlightAnswer(answer:Int){
+        when(answer){ //Once passed through the validation, it now checks which number was assigned
+            1 -> {
+                textViewOptionOne.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg) //Once the number is found it changes background to let the user know they got it correct
+            }
+            2 -> {
+                textViewOptionTwo.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
+            }
+            3 -> {
+                textViewOptionThree.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
+            }
+            4 -> {
+                textViewOptionFour.background = ContextCompat.getDrawable(this,R.drawable.correct_option_border_bg)
+            }
+        }
+    }
 
 }

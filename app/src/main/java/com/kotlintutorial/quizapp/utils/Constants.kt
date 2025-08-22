@@ -4,6 +4,12 @@ import com.kotlintutorial.quizapp.R
 import com.kotlintutorial.quizapp.model.Question
 
 object Constants{ //Here we are creating a singleton class to allow us to only have one instance of this class, no need to create multiple new instances and reset position of the arrayList
+
+    const val USER_NAME = "user_name" //These are the keys that is going to be use to pass and retrieve data
+    const val TOTAL_QUESTIONS = "total_questions"
+    const val SCORE = "correct_answers"
+
+
     fun getQuestions():MutableList<Question>{
         //val question = mutableListOf<Question>()
         val questions = ArrayList<Question>() //An array list to hold the question objects
