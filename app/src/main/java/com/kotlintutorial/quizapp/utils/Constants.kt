@@ -117,7 +117,7 @@ object Constants{ //Here we are creating a singleton class to allow us to only h
             "Kolo Touré",
             "Didier Drogba",
             "Michael Essien",
-            1
+            2
         )
         questions.add(q9)
 
